@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeSpace - AI Companion</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            /* Dark Theme Colors */
+            --bg-body: #11141e;
+            --bg-sidebar: #191c27;
+            --bg-chat-header: #11141e;
+            --bg-input-box: #151821;
+            --bg-bot-msg: #212534;
+            --bg-user-msg: rgba(168, 85, 247, 0.15);
+            /* Soft purple tint */
+
+            --text-primary: #ffffff;
+            --text-secondary: #a0a4b8;
+            --text-muted: #6b7280;
+
+            --border-color: #272c3d;
+            --accent-purple: #a855f7;
+            --accent-purple-hover: #9333ea;
+            --accent-purple-gradient: linear-gradient(135deg, #a855f7, #6366f1);
+            --accent-green: #2ecc71;
+
+            /* Dimensions */
+            --sidebar-width: 260px;
+        }
+
+        body.light-mode {
+            --bg-body: #f7f9fa;
+            --bg-sidebar: #ffffff;
+            --bg-chat-header: #f7f9fa;
+            --bg-input-box: #ffffff;
+            --bg-bot-msg: #ffffff;
+            --bg-user-msg: rgba(168, 85, 247, 0.1);
+
+            --text-primary: #1f2937;
+            --text-secondary: #4b5563;
+            --text-muted: #9ca3af;
+
+            --border-color: #e5e7eb;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 20px;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 40px;
+            color: var(--text-primary);
+        }
+
+        .logo i {
+            color: var(--accent-purple);
+            font-size: 24px;
+        }
+
+        .nav {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            text-align: left;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .nav-item.active {
+            background: var(--accent-purple-gradient);
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+        }
+
+        .nav-item:not(.active):hover {
+            background-color: var(--bg-bot-msg);
+            color: var(--text-primary);
+        }
+
+        .nav-item i {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .disclaimer {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            background-color: var(--bg-bot-msg);
+            padding: 12px;
+            border-radius: 10px;
+        }
+
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--bg-bot-msg);
+        }
+
+        .credits {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 8px;
+        }
+
+        /* Main Chat Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            position: relative;
+        }
+
+        .chat-header {
+            padding: 24px 40px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 6px;
+            background-color: var(--bg-chat-header);
+            z-index: 10;
+        }
+
+        .chat-header h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--accent-green);
+            font-weight: 500;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-green);
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(46, 204, 113, 0.6);
+        }
+
+        .memory-btn {
+            position: absolute;
+            top: 24px;
+            right: 40px;
+            background: var(--bg-bot-msg);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .memory-btn:hover {
+            color: var(--text-primary);
+        }
+
+        /* Messages Area */
+        .chat-box {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Message Styling */
+        .message-row {
+            display: flex;
+            width: 100%;
+        }
+
+        .message-row.bot {
+            justify-content: flex-start;
+        }
+
+        .message-row.user {
+            justify-content: flex-end;
+        }
+
+        .message-wrapper {
+            display: flex;
+            gap: 16px;
+            max-width: 80%;
+        }
+
+        .message-row.user .message-wrapper {
+            flex-direction: row-reverse;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 20px;
+        }
+
+        .avatar-bot {
+            background-color: var(--accent-green);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.2);
+        }
+
+        .avatar-user {
+            background: var(--accent-purple-gradient);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.2);
+        }
+
+        .message-bubble {
+            background-color: var(--bg-bot-msg);
+            padding: 18px 24px;
+            border-radius: 16px;
+            color: var(--text-primary);
+            font-size: 15px;
+            line-height: 1.6;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .message-row.bot .message-bubble {
+            border-top-left-radius: 4px;
+        }
+
+        .message-row.user .message-bubble {
+            background-color: var(--bg-user-msg);
+            border-top-right-radius: 4px;
+            border-color: rgba(168, 85, 247, 0.3);
+        }
+
+        .timestamp {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 10px;
+            text-align: right;
+            display: block;
+        }
+
+        /* Input Area */
+        .input-area {
+            padding: 24px 40px;
+            background-color: var(--bg-body);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            background-color: var(--bg-input-box);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 8px 8px 8px 24px;
+            transition: border-color 0.2s;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--accent-purple);
+        }
+
+        .input-wrapper input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 15px;
+            outline: none;
+            padding: 10px 0;
+            font-family: inherit;
+        }
+
+        .input-wrapper input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .send-btn {
+            background: var(--accent-purple-gradient);
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(168, 85, 247, 0.6);
+        }
+
+        .send-btn:disabled {
+            background: var(--text-muted);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Loading Indicator */
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            height: 24px;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--text-secondary);
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0);
+            }
+
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        /* Markdown Parsing Styles */
+        .message-bubble p {
+            margin-bottom: 12px;
+        }
+
+        .message-bubble p:last-child {
+            margin-bottom: 0;
+        }
+
+        .message-bubble strong {
+            font-weight: 600;
+            color: var(--accent-purple);
+        }
+
+        .message-bubble ul {
+            margin-left: 20px;
+            margin-bottom: 12px;
+        }
+
+        .message-bubble li {
+            margin-bottom: 4px;
+        }
+
+        /* Memory Panel (Hidden by default) */
+        .memory-panel {
+            display: none;
+            position: absolute;
+            top: 80px;
+            right: 40px;
+            width: 350px;
+            background: #1e1e1e;
+            color: #00ff00;
+            font-family: monospace;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #333;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            font-size: 13px;
+        }
+
+        .memory-panel.show {
+            display: block;
+        }
+
+        .memory-panel h3 {
+            color: #fff;
+            margin-bottom: 15px;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .memory-panel .close-btn {
+            background: none;
+            border: none;
+            color: #ff5555;
+            cursor: pointer;
+        }
+
+        .memory-content {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        /* Navigation Logic (Views) */
+        .view-section {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .view-section.active {
+            display: flex;
+        }
+
+        /* Feature View Headers */
+        .feature-header {
+            padding: 24px 40px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--bg-chat-header);
+        }
+
+        .feature-header h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .feature-header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 6px;
+        }
+
+        /* Feature Content Area */
+        .feature-content {
+            padding: 40px;
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        /* Mood Tracker Specifics */
+        .mood-container {
+            text-align: center;
+            background: var(--bg-bot-msg);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .mood-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+
+        .emoji-grid {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .emoji-btn {
+            background: var(--bg-input-box);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            font-size: 40px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            width: 100px;
+        }
+
+        .emoji-btn span {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+        }
+
+        .emoji-btn:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-purple);
+            box-shadow: 0 10px 20px rgba(168, 85, 247, 0.15);
+        }
+
+        .emoji-btn.selected {
+            background: var(--accent-purple-gradient);
+            border-color: transparent;
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 25px rgba(168, 85, 247, 0.3);
+        }
+
+        .emoji-btn.selected span {
+            color: white;
+        }
+
+        .mood-feedback {
+            margin-top: 30px;
+            min-height: 24px;
+            color: var(--accent-green);
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        /* Breathe Tool Specifics */
+        .breathe-container {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .breathe-circle-wrapper {
+            position: relative;
+            width: 250px;
+            height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .breathe-circle {
+            width: 100px;
+            height: 100px;
+            background: var(--accent-purple-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+            box-shadow: 0 0 30px rgba(168, 85, 247, 0.4);
+            transition: transform 4s ease-in-out;
+            /* Defines inhale/exhale timing dynamically via JS */
+            z-index: 2;
+        }
+
+        .breathe-ring {
+            position: absolute;
+            width: 250px;
+            height: 250px;
+            border: 2px dashed var(--border-color);
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .breathe-controls {
+            display: flex;
+            gap: 16px;
+        }
+
+        .breathe-btn {
+            padding: 14px 32px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-start {
+            background: var(--accent-green);
+            color: white;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+        }
+
+        .btn-stop {
+            background: var(--bg-bot-msg);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-stop:hover {
+            background: var(--border-color);
+        }
+
+        .breathe-instruction {
+            font-size: 22px;
+            font-weight: 500;
+            color: var(--text-primary);
+            height: 30px;
+            transition: opacity 0.3s;
+        }
+
+        /* Modal for features not yet implemented */
+        .feature-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .feature-modal.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: var(--bg-bot-msg);
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .modal-box h2 {
+            margin-bottom: 15px;
+        }
+
+        .modal-box p {
+            color: var(--text-secondary);
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .modal-box button {
+            background: var(--accent-purple-gradient);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <i class="fa-brands fa-envira"></i> SafeSpace
+        </div>
+
+        <nav class="nav">
+            <button class="nav-item active" onclick="switchView('chat')" id="nav-chat">
+                <i class="fa-regular fa-comment-dots"></i> Chat
+            </button>
+            <button class="nav-item" onclick="switchView('mood')" id="nav-mood">
+                <i class="fa-regular fa-face-smile"></i> Mood Tracker
+            </button>
+            <button class="nav-item" onclick="switchView('breathe')" id="nav-breathe">
+                <i class="fa-solid fa-lungs"></i> Breathe
+            </button>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="disclaimer">
+                <i class="fa-solid fa-circle-exclamation"></i> Not a licensed therapist.
+            </div>
+
+            <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()">
+                <i class="fa-solid fa-sun"></i> Light Mode
+            </button>
+
+            <div class="credits">
+                Made by Tanishaq
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+
+        <!-- View 1: Chat interface -->
+        <section id="view-chat" class="view-section active">
+            <header class="chat-header">
+                <h1>AI Support Companion</h1>
+                <div class="status">
+                    <span class="dot"></span> Online
+                </div>
+                <button class="memory-btn" onclick="toggleMemory()"><i class="fa-solid fa-bug"></i> Debug
+                    Memory</button>
+            </header>
+
+            <!-- Memory Overlay Panel -->
+            <div class="memory-panel" id="memory-panel">
+                <h3>Backend State Tracker <button class="close-btn" onclick="toggleMemory()"><i
+                            class="fa-solid fa-xmark"></i></button></h3>
+                <div class="memory-content" id="memory-content">Waiting for interaction...</div>
+            </div>
+
+            <!-- Chat History -->
+            <div class="chat-box" id="chat-box">
+                <!-- Initial Welcome Message -->
+                <div class="message-row bot">
+                    <div class="message-wrapper">
+                        <div class="avatar avatar-bot">
+                            <i class="fa-solid fa-robot"></i>
+                        </div>
+                        <div>
+                            <div class="message-bubble">
+                                <p>Hi there. I'm SafeSpace, an AI designed to support students. I'm a safe,
+                                    non-judgmental
+                                    place to talk about stress, anxiety, or whatever is on your mind.</p>
+                                <p><em>Please note: I am an AI, not a licensed mental health professional.</em></p>
+                                <span class="timestamp">Just now</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <input type="text" id="user-input" placeholder="Type your message here..."
+                        onkeypress="handleKeyPress(event)" autocomplete="off">
+                    <button class="send-btn" id="send-btn" onclick="sendMessage()">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- View 2: Mood Tracker -->
+        <section id="view-mood" class="view-section">
+            <header class="feature-header">
+                <h1>Daily Mood Tracker</h1>
+                <p>Check in with yourself. How are you feeling right now?</p>
+            </header>
+            <div class="feature-content">
+                <div class="mood-container">
+                    <div class="mood-title">Select your current mood</div>
+                    <div class="emoji-grid">
+                        <button class="emoji-btn" onclick="recordMood(this, 'Happy')">
+                            😄<span>Happy</span>
+                        </button>
+                        <button class="emoji-btn" onclick="recordMood(this, 'Mood Off')">
+                            😐<span>Mood Off</span>
+                        </button>
+                        <button class="emoji-btn" onclick="recordMood(this, 'Anxiety')">
+                            😰<span>Anxiety</span>
+                        </button>
+                        <button class="emoji-btn" onclick="recordMood(this, 'Angry')">
+                            😡<span>Angry</span>
+                        </button>
+                        <button class="emoji-btn" onclick="recordMood(this, 'Worst')">
+                            💔<span>Worst</span>
+                        </button>
+                    </div>
+                    <div class="mood-feedback" id="mood-feedback">Mood recorded successfully.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- View 3: Breathe Tool -->
+        <section id="view-breathe" class="view-section">
+            <header class="feature-header">
+                <h1>Breathe Exercise</h1>
+                <p>Follow the animation to slow your heart rate and center your mind.</p>
+            </header>
+            <div class="feature-content">
+                <div class="breathe-container">
+                    <div class="breathe-instruction" id="breathe-text">Click Start to begin.</div>
+
+                    <div class="breathe-circle-wrapper">
+                        <div class="breathe-ring"></div>
+                        <div class="breathe-circle" id="breathe-circle">
+                            <i class="fa-solid fa-lungs"></i>
+                        </div>
+                    </div>
+
+                    <div class="breathe-controls">
+                        <button class="breathe-btn btn-start" id="breathe-start"
+                            onclick="startBreathing()">Start</button>
+                        <button class="breathe-btn btn-stop" id="breathe-stop" onclick="stopBreathing()"
+                            style="display: none;">Stop</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Feature Not Ready Modal -->
+    <div class="feature-modal" id="feature-modal">
+        <div class="modal-box">
+            <h2 id="modal-title">Feature</h2>
+            <p id="modal-desc">Description</p>
+            <button onclick="closeFeatureModal()">Got it</button>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Setup User ID for Backend Session
+        let userId = localStorage.getItem("chat_user_id");
+        if (!userId) {
+            userId = 'u' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem("chat_user_id", userId);
+        }
+
+        // --- Navigation Logic ---
+        function switchView(viewId) {
+            // Update Active Nav Item
+            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('nav-' + viewId).classList.add('active');
+
+            // Toggle Sections
+            document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById('view-' + viewId).classList.add('active');
+
+            // Stop breathing if navigating away
+            if (viewId !== 'breathe') stopBreathing();
+        }
+
+        // --- Theme Toggling ---
+        let isLightMode = false;
+        function toggleTheme() {
+            isLightMode = !isLightMode;
+            if (isLightMode) {
+                document.body.classList.add('light-mode');
+                document.getElementById('theme-btn').innerHTML = '<i class="fa-solid fa-moon"></i> Dark Mode';
+            } else {
+                document.body.classList.remove('light-mode');
+                document.getElementById('theme-btn').innerHTML = '<i class="fa-solid fa-sun"></i> Light Mode';
+            }
+        }
+
+        // --- Mood Tracker Logic ---
+        function recordMood(element, mood) {
+            // Remove selected class from all
+            document.querySelectorAll('.emoji-btn').forEach(btn => btn.classList.remove('selected'));
+            // Add selected class to chosen
+            element.classList.add('selected');
+
+            // Show Feedback
+            const feedback = document.getElementById('mood-feedback');
+            feedback.innerText = `Recorded: You're feeling ${mood}.`;
+            feedback.style.opacity = 1;
+
+            // Wait 1.5 seconds, then auto-trigger chat message
+            setTimeout(() => {
+                feedback.style.opacity = 0;
+
+                // Switch User back to Chat view automatically
+                switchView('chat');
+
+                // Inject the mood directly into the chat input
+                const inputField = document.getElementById("user-input");
+                inputField.value = `I am feeling ${mood} today. Can you give me one or two suggestions on what to do?`;
+
+                // Trigger the send command automatically
+                sendMessage();
+            }, 1500);
+        }
+
+        // --- Breathe Exercise Logic ---
+        let breatheInterval;
+        let breatheTimeout;
+
+        function startBreathing() {
+            document.getElementById('breathe-start').style.display = 'none';
+            document.getElementById('breathe-stop').style.display = 'block';
+
+            const circle = document.getElementById('breathe-circle');
+            const text = document.getElementById('breathe-text');
+
+            const totalTime = 8000; // 4s in, 4s out
+            const breatheTime = 4000;
+
+            function breathAnimation() {
+                text.innerText = 'Breathe In...';
+                circle.style.transform = 'scale(2.5)';
+                circle.style.transition = 'transform 4s ease-in-out';
+
+                breatheTimeout = setTimeout(() => {
+                    text.innerText = 'Breathe Out...';
+                    circle.style.transform = 'scale(1)';
+                    circle.style.transition = 'transform 4s ease-in-out';
+                }, breatheTime);
+            }
+
+            // Initial call
+            breathAnimation();
+            // Loop
+            breatheInterval = setInterval(breathAnimation, totalTime);
+        }
+
+        function stopBreathing() {
+            document.getElementById('breathe-start').style.display = 'block';
+            document.getElementById('breathe-stop').style.display = 'none';
+
+            clearInterval(breatheInterval);
+            clearTimeout(breatheTimeout);
+
+            const circle = document.getElementById('breathe-circle');
+            const text = document.getElementById('breathe-text');
+
+            text.innerText = 'Exercise stopped.';
+            circle.style.transform = 'scale(1)';
+            circle.style.transition = 'transform 1s ease-out';
+        }
+
+        // --- Memory Panel Toggling ---
+        function toggleMemory() {
+            document.getElementById('memory-panel').classList.toggle('show');
+        }
+
+        // --- Feature Modal ---
+        function showFeatureModal(title, desc) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-desc').innerText = desc;
+            document.getElementById('feature-modal').classList.add('active');
+        }
+        function closeFeatureModal() {
+            document.getElementById('feature-modal').classList.remove('active');
+        }
+
+        // --- Chat Logic ---
+        function getTimestamp() {
+            const now = new Date();
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            return hours + ':' + minutes + ' ' + ampm;
+        }
+
+        // Basic markdown formatting (bold, newlines to <p>)
+        function parseMarkdown(text) {
+            let html = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+            // Handle bullet points
+            if (html.includes('* ')) {
+                const parts = html.split('\n');
+                let inList = false;
+                html = '';
+                for (let line of parts) {
+                    if (line.trim().startsWith('* ') || line.trim().startsWith('- ')) {
+                        if (!inList) { html += '<ul>'; inList = true; }
+                        html += `<li>${line.replace(/^[*-]\s+/, '')}</li>`;
+                    } else {
+                        if (inList) { html += '</ul>'; inList = false; }
+                        if (line.trim() !== '') html += `<p>${line}</p>`;
+                    }
+                }
+                if (inList) html += '</ul>';
+            } else {
+                html = html.split('\n').filter(p => p.trim() !== '').map(p => `<p>${p}</p>`).join('');
+            }
+            return html;
+        }
+
+        function createMessageElement(sender, content, msgId) {
+            const isUser = sender === 'user';
+
+            const rowDiv = document.createElement('div');
+            rowDiv.className = `message-row ${sender}`;
+            rowDiv.id = msgId;
+
+            const wrapperDiv = document.createElement('div');
+            wrapperDiv.className = 'message-wrapper';
+
+            // Avatar
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = `avatar avatar-${sender}`;
+            avatarDiv.innerHTML = isUser ? '<i class="fa-solid fa-user"></i>' : '<i class="fa-solid fa-robot"></i>';
+
+            // Bubble Container
+            const bubbleCont = document.createElement('div');
+
+            // Bubble Content
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble';
+            if (content === 'loading') {
+                bubbleDiv.innerHTML = `
+                    <div class="typing-indicator">
+                        <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+                    </div>
+                `;
+            } else {
+                bubbleDiv.innerHTML = isUser ? `<p>${content}</p>` : parseMarkdown(content);
+                const timeSpan = document.createElement('span');
+                timeSpan.className = 'timestamp';
+                timeSpan.innerText = getTimestamp();
+                bubbleDiv.appendChild(timeSpan);
+            }
+
+            bubbleCont.appendChild(bubbleDiv);
+            wrapperDiv.appendChild(avatarDiv);
+            wrapperDiv.appendChild(bubbleCont);
+            rowDiv.appendChild(wrapperDiv);
+
+            return rowDiv;
+        }
+
+        async function sendMessage() {
+            const inputField = document.getElementById("user-input");
+            const sendBtn = document.getElementById("send-btn");
+            const chatBox = document.getElementById("chat-box");
+
+            const message = inputField.value.trim();
+            if (!message) return;
+
+            // 1. Add User Message
+            chatBox.appendChild(createMessageElement('user', message, `usr-${Date.now()}`));
+            inputField.value = "";
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // 2. Add Loading Indicator
+            const loadingId = `bot-${Date.now()}`;
+            chatBox.appendChild(createMessageElement('bot', 'loading', loadingId));
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Disable input while generating
+            inputField.disabled = true;
+            sendBtn.disabled = true;
+
+            try {
+                // Remove trailing slash if running locally via python -m http.server
+                const response = await fetch("http://127.0.0.1:5000/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ user_id: userId, message: message })
+                });
+
+                if (!response.ok) throw new Error("Server error");
+
+                const data = await response.json();
+
+                // Replace loading message with actual response
+                const loadingNode = document.getElementById(loadingId);
+                const newBotNode = createMessageElement('bot', data.response, loadingId);
+                chatBox.replaceChild(newBotNode, loadingNode);
+
+                // Update memory panel
+                document.getElementById("memory-content").innerText = JSON.stringify(data.memory, null, 2);
+
+            } catch (error) {
+                console.error(error);
+                const loadingNode = document.getElementById(loadingId);
+                const errorNode = createMessageElement('bot', "I'm having trouble connecting to my servers right now. Please check if the Flask backend is running on port 5000.", loadingId);
+                chatBox.replaceChild(errorNode, loadingNode);
+            } finally {
+                inputField.disabled = false;
+                sendBtn.disabled = false;
+                inputField.focus();
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        }
+    </script>
+</body>
+
+</html>
